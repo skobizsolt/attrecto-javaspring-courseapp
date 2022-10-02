@@ -1,21 +1,20 @@
-package com.attrecto.academy.java.courseapp.model.dto;
+package com.attrecto.academy.java.courseapp.model;
 
+import javax.persistence.*;
 import java.util.List;
 
-public class CourseDto {
+@Entity
+public class Course {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private String title;
 	private String description;
 	private String url;
 	private Integer authorId;
-	private List<MinimalUserDto> students;
-
-	public List<MinimalUserDto> getStudents() {
-		return students;
-	}
-	public void setStudents(List<MinimalUserDto> students) {
-		this.students = students;
-	}
+	@ManyToMany
+	private List<User> students;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -40,10 +39,16 @@ public class CourseDto {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	public Integer getAuthorId() {
+	public int getAuthorId() {
 		return authorId;
 	}
 	public void setAuthorId(Integer authorId) {
 		this.authorId = authorId;
+	}
+	public List<User> getStudents() {
+		return students;
+	}
+	public void setStudents(List<User> students) {
+		this.students = students;
 	}
 }

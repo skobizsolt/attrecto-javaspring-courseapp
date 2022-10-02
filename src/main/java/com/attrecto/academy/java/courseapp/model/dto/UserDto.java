@@ -1,33 +1,35 @@
 package com.attrecto.academy.java.courseapp.model.dto;
 
-import java.time.LocalDate;
+import java.util.List;
 
-public class UserDto extends MinimalUserDto {
-    private String firstName;
-    private String lastName;
-    private LocalDate birthDate;
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
+public class UserDto {
+	private int id;
+	private String email;
+	private String name;
+	private List<MinimalCourseDto> courses;
+	
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public List<MinimalCourseDto> getCourses() {
+		return courses;
+	}
+	public void setCourses(List<MinimalCourseDto> courses) {
+		this.courses = courses;
+	}
 }
