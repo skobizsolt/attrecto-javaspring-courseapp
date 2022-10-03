@@ -58,4 +58,11 @@ public class UsersController {
     	userService.deleteUser(id);
     }
 
+    @GetMapping(value = "/{id}/{filter}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Sorts users by name and id", security = {@SecurityRequirement(name = "token")})
+    public List<UserDto> filterUsers(@PathVariable final Integer id, @PathVariable final String filter){
+        return userService.filterUser(id, filter);
+    }
+
 }

@@ -1,9 +1,14 @@
 package com.attrecto.academy.java.courseapp.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 public class Course {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,41 +19,4 @@ public class Course {
 	private Integer authorId;
 	@ManyToMany
 	private List<User> students;
-	
-	public Integer getId() {
-		return id;
-	}
-	public void setId(Integer id) {
-		this.id = id;
-	}
-	public String getTitle() {
-		return title;
-	}
-	public void setTitle(String title) {
-		this.title = title;
-	}
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	public String getUrl() {
-		return url;
-	}
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	public int getAuthorId() {
-		return authorId;
-	}
-	public void setAuthorId(Integer authorId) {
-		this.authorId = authorId;
-	}
-	public List<User> getStudents() {
-		return students;
-	}
-	public void setStudents(List<User> students) {
-		this.students = students;
-	}
 }
