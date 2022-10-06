@@ -1,24 +1,20 @@
 package com.attrecto.academy.java.courseapp.service;
 
-import org.springframework.stereotype.Service;
-
 import com.attrecto.academy.java.courseapp.model.dto.LoginDto;
 import com.attrecto.academy.java.courseapp.model.dto.MinimalUserDto;
+import org.springframework.stereotype.Service;
 
 @Service
 public class AccountService {
-
-	//TODO: Teszt célból a valós JWT token helyett egyenlőre ezt adjuk vissza
-	public String generateJwtToken(LoginDto loginDto) {
-		return "test";
+	public String generateJwtToken(final LoginDto loginDto) {
+		return "";
 	}
-
-	//TODO: Teszt célból a bejelentkezett felhasználó helyett egyenlőre egy fiktív felhasználót adunk vissza
+	
 	public MinimalUserDto getLoggedUser() {
 		MinimalUserDto minimalUserDto = new MinimalUserDto();
 		minimalUserDto.setId(1);
-		minimalUserDto.setName("user");
-		minimalUserDto.setEmail("usertestemail@attrecto.com");
+		minimalUserDto.setName("mockUser");
+		minimalUserDto.setEmail("mockUser@email.com");
 		return minimalUserDto;
 	}
 }

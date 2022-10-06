@@ -1,15 +1,18 @@
 package com.attrecto.academy.java.courseapp.model.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-@Getter
-@Setter
-public class UserDto {
-	private int id;
-	private String email;
-	private String name;
-	private List<MinimalCourseDto> courses;
+public class UserDto extends MinimalUserDto {
+	@Schema(description = "Id's of the user courses")
+	private Set<MinimalCourseDto> courses = new HashSet<>();
+
+	public Set<MinimalCourseDto> getCourses() {
+		return courses;
+	}
+	public void setCourses(Set<MinimalCourseDto> courses) {
+		this.courses = courses;
+	}
 }

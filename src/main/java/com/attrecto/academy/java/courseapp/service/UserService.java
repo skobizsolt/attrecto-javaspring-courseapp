@@ -2,96 +2,83 @@ package com.attrecto.academy.java.courseapp.service;
 
 import com.attrecto.academy.java.courseapp.mapper.UserMapper;
 import com.attrecto.academy.java.courseapp.model.Course;
+import com.attrecto.academy.java.courseapp.model.Role;
 import com.attrecto.academy.java.courseapp.model.User;
 import com.attrecto.academy.java.courseapp.model.dto.CreateUserDto;
-import com.attrecto.academy.java.courseapp.model.dto.MinimalCourseDto;
 import com.attrecto.academy.java.courseapp.model.dto.UpdateUserDto;
 import com.attrecto.academy.java.courseapp.model.dto.UserDto;
+import com.attrecto.academy.java.courseapp.persistence.CourseRepository;
 import com.attrecto.academy.java.courseapp.persistence.UserRepository;
 import com.attrecto.academy.java.courseapp.service.util.ServiceUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.webjars.NotFoundException;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class UserService {
-    private UserRepository userRepository;
-    private ServiceUtil serviceUtil;
+	private UserRepository userRepository;
+	private CourseRepository courseRepository;
+	private ServiceUtil serviceUtil;
 
-    private UserMapper userMapper;
+	@Autowired
+	public UserService(final UserRepository userRepository, final CourseRepository courseRepository, final ServiceUtil serviceUtil) {
+		this.userRepository = userRepository;
+		this.courseRepository = courseRepository;
+		this.serviceUtil = serviceUtil;
+	}
 
-    @Autowired
-    public UserService(UserRepository userRepository, ServiceUtil serviceUtil, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.serviceUtil = serviceUtil;
-        this.userMapper = userMapper;
-    }
+	public List<UserDto> listUsers() {
+		return userRepository.findAll().stream().map(UserMapper::map).collect(Collectors.toList());
+	}
 
-    public List<UserDto> listUsers() {
-        return userMapper.usersToUserDtoList(userRepository.findAll());
-    }
+	public UserDto getUserById(final int id) {
+		return UserMapper.map(serviceUtil.findUserById(id));
+	}
 
-    public UserDto getUserById(final int id) {
-        final User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("User cannot be found with id: %s", id)));
-        return userMapper.userToUserDto(user);
-    }
+	public UserDto updateUser(int id, UpdateUserDto updateUserDto) {
+		Set<Course> courses = updateUserDto.getCourses().stream()
+				.map(courseId -> serviceUtil.findCourseById(courseId)).collect(Collectors.toSet());
 
-    //TODO: mapping issues
-    public UserDto updateUser(int id, UpdateUserDto updateUserDto) {
-        List<Course> courses = updateUserDto.getCourses().stream()
-                .map(courseId -> serviceUtil.findCourseById(courseId)).collect(Collectors.toList());
+		final User user = serviceUtil.findUserById(id);
+		user.setName(updateUserDto.getName());
+		user.setEmail(updateUserDto.getEmail());
+		user.setPassword(updateUserDto.getPassword());
+		user.setRole(updateUserDto.getRole());
+		user.setCourses(courses);
+		final User updatedUser = userRepository.save(user);
+		
+		courseRepository.findAll().forEach(course -> {
+			if(courses.contains(course)) {
+				course.getStudents().add(user);				
+			} else {
+				course.getStudents().remove(user);
+			}
+			
+			courseRepository.save(course);
+		});
+		
+		return UserMapper.map(updatedUser);
+	}
 
-        User user = serviceUtil.findUserById(id);
-        user.setName(updateUserDto.getName());
-        user.setEmail(updateUserDto.getEmail());
-        user.setPassword(updateUserDto.getPassword());
-        user.setRole(updateUserDto.getRole());
-        user.setCourses(courses);
-        userRepository.save(user);
+	public UserDto createUser(CreateUserDto createUserDto) {
+		User user = new User();
+		user.setName(createUserDto.getName());
+		user.setPassword(createUserDto.getPassword());
+		user.setEmail(createUserDto.getEmail());
+		user.setRole(Role.USER);
+		user.setCourses(new HashSet<>());
+		user = userRepository.save(user);
 
-        UserDto userDto = new UserDto();
-        userDto.setId(id);
-        userDto.setName(updateUserDto.getName());
-        userDto.setEmail(updateUserDto.getEmail());
-        userDto.setCourses(user.getCourses().stream().map(course -> {
-            MinimalCourseDto minimalCourseDto = new MinimalCourseDto();
-            minimalCourseDto.setId(course.getId());
-            minimalCourseDto.setTitle(course.getTitle());
-            minimalCourseDto.setUrl(course.getUrl());
-            minimalCourseDto.setDescription(course.getDescription());
-            return minimalCourseDto;
-        }).collect(Collectors.toList()));
+		return UserMapper.map(user);
+	}
 
-        return userDto;
-//        List<Course> courses = userMapper.valuesToCourses(updateUserDto.getCourses());
-//        User user = userMapper.updateUserDtoToUserModel(updateUserDto, courses);
-//        user = userRepository.save(user);
-//        return userMapper.userToUserDto(user);
-    }
-
-    public UserDto createUser(CreateUserDto createUserDto) {
-        User user = userMapper.createUserDtoToUserModel(createUserDto);
-        user = userRepository.save(user);
-
-        return userMapper.userToUserDto(user);
-    }
-
-    public void deleteUser(final int id) {
-        serviceUtil.findUserById(id);
-
-        userRepository.deleteById(id);
-    }
-
-    public List<UserDto> filterUser(final String filter) {
-        List<User> users = userRepository.findAllByNameContainingIgnoreCaseOrderByNameAscId(filter)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("User cannot be found with the given name: %s", filter)));
-        return userMapper.usersToUserDtoList(users);
-    }
+	public void deleteUser(final int id) {
+		serviceUtil.findUserById(id);
+		
+		userRepository.deleteById(id);
+	}
 }

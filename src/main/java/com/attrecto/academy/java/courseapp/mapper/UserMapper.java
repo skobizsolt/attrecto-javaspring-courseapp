@@ -1,27 +1,36 @@
 package com.attrecto.academy.java.courseapp.mapper;
 
-import com.attrecto.academy.java.courseapp.model.Course;
 import com.attrecto.academy.java.courseapp.model.User;
-import com.attrecto.academy.java.courseapp.model.dto.CreateUserDto;
-import com.attrecto.academy.java.courseapp.model.dto.UpdateUserDto;
+import com.attrecto.academy.java.courseapp.model.dto.MinimalUserDto;
 import com.attrecto.academy.java.courseapp.model.dto.UserDto;
-import org.mapstruct.Mapper;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
-@Component
-@Mapper(uses = CourseMapper.class)
-public interface UserMapper {
-    UserDto userToUserDto(User user);
+public class UserMapper {
 
-    List<UserDto> usersToUserDtoList(List<User> users);
+	public static MinimalUserDto  mapToMinimal(final User user) {
+		MinimalUserDto minimalUserDto = new MinimalUserDto();
+		minimalUserDto.setId(user.getId());
+		minimalUserDto.setName(user.getName());
+		minimalUserDto.setEmail(user.getEmail());
+		return minimalUserDto;
+	}
 
-    User createUserDtoToUserModel(CreateUserDto userDto);
+	public static UserDto map(final User user) {
+		UserDto userDto = new UserDto();
+		userDto.setId(user.getId());
+		userDto.setName(user.getName());
+		userDto.setEmail(user.getEmail());
+		userDto.setCourses(user.getCourses().stream().map(CourseMapper::mapToMinimal).collect(Collectors.toSet()));
+		
+		return userDto;
+	}
+	
+	public static User map(final MinimalUserDto userDto) {
+		return null;
+	}
 
-    User updateUserDtoToUserModel(UpdateUserDto updateUserDto, List<Course> courses);
-
-    //Mapstruct helps if you messed up something
-    Course valueToCourse(Integer value);
-    List<Course> valuesToCourses(List<Integer> values);
+	public static User map(final UserDto userDto) {
+		return null;
+	}
 }

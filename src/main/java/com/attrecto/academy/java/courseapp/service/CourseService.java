@@ -4,74 +4,54 @@ import com.attrecto.academy.java.courseapp.mapper.CourseMapper;
 import com.attrecto.academy.java.courseapp.model.Course;
 import com.attrecto.academy.java.courseapp.model.dto.CourseDto;
 import com.attrecto.academy.java.courseapp.model.dto.CreateCourseDto;
-import com.attrecto.academy.java.courseapp.model.dto.MinimalUserDto;
 import com.attrecto.academy.java.courseapp.persistence.CourseRepository;
 import com.attrecto.academy.java.courseapp.service.util.ServiceUtil;
 import org.springframework.stereotype.Service;
-import org.webjars.NotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-//TODO: haven't rewritten yet
 @Service
 public class CourseService {
 	private CourseRepository courseRepository;
 	private ServiceUtil serviceUtil;
 
-	private CourseMapper courseMapper;
-
-	public CourseService(CourseRepository courseRepository, ServiceUtil serviceUtil, CourseMapper courseMapper) {
+	public CourseService(CourseRepository courseRepository, ServiceUtil serviceUtil) {
 		this.courseRepository = courseRepository;
 		this.serviceUtil = serviceUtil;
-		this.courseMapper = courseMapper;
 	}
 
 	public List<CourseDto> listAllCourses() {
-		return courseMapper.coursesToCourseDtoList(courseRepository.findAll());
+		List<Course> courses = courseRepository.findAll();
+		return courses.stream().map(CourseMapper::map).collect(Collectors.toList());
 	}
 
 	public CourseDto getCourseById(int id) {
-		Course course = courseRepository.findById(id)
-				.orElseThrow(() -> new NotFoundException(String.format("A kurzus nem található a megadott id-val %s", id)));
-		return courseMapper.courseToCourseDto(course);
+		return CourseMapper.map(serviceUtil.findCourseById(id));
 	}
 
 	public CourseDto createCourse(CreateCourseDto createCourseDto) {
-		Course course = new Course();
+		final Course course = new Course();
 		course.setTitle(createCourseDto.getTitle());
 		course.setDescription(createCourseDto.getDescription());
 		course.setUrl(createCourseDto.getUrl());
-		course.setAuthorId(serviceUtil.findUserById(createCourseDto.getAuthorId()).getId());
-		course.setStudents(createCourseDto.getStudentIds().stream()
-				.map(studentId -> serviceUtil.findUserById(studentId)).collect(Collectors.toList()));
+		course.setAuthor(serviceUtil.findUserById(createCourseDto.getAuthorId()));
+		course.setStudents(createCourseDto.getStudentIds().stream().map(userId -> serviceUtil.findUserById(userId))
+				.collect(Collectors.toSet()));
 
-		course = courseRepository.save(course);
-		
-		CourseDto courseDto = new CourseDto();
-		courseDto.setId(course.getId());
-		courseDto.setTitle(course.getTitle());
-		courseDto.setDescription(course.getDescription());
-		courseDto.setUrl(course.getUrl());
-		courseDto.setAuthorId(course.getAuthorId());
-		courseDto.setStudents(course.getStudents().stream().map(student -> {
-			MinimalUserDto minimalUserDto = new MinimalUserDto();
-			minimalUserDto.setId(student.getId());
-			minimalUserDto.setName(student.getName());
-			minimalUserDto.setEmail(student.getEmail());
-			return minimalUserDto;
-		}).collect(Collectors.toList()));
-		
-		return courseDto;
+		return CourseMapper.map(courseRepository.save(course));
 	}
 
-	//TODO: mapping issues
 	public CourseDto updateCourse(final int id, CreateCourseDto updateCourseDto) {
-		Course course = courseRepository.findById(id)
-				.orElseThrow(() -> new NotFoundException(String.format("A kurzus nem található a megadott id-val %s", id)));
-		course = courseMapper.createCourseDtoToCourseModel(updateCourseDto);
-		courseRepository.save(course);
-		return courseMapper.courseToCourseDto(course);
+		Course course = serviceUtil.findCourseById(id);
+		course.setDescription(updateCourseDto.getDescription());
+		course.setTitle(updateCourseDto.getTitle());
+		course.setUrl(updateCourseDto.getUrl());
+		course.setAuthor(serviceUtil.findUserById(updateCourseDto.getAuthorId()));
+		course.setStudents(updateCourseDto.getStudentIds().stream().map(userId -> serviceUtil.findUserById(userId))
+				.collect(Collectors.toSet()));
+
+		return CourseMapper.map(courseRepository.save(course));
 	}
 
 	public void deleteCourse(int id) {

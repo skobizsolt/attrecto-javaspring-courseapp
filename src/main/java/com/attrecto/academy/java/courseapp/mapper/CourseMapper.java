@@ -2,18 +2,40 @@ package com.attrecto.academy.java.courseapp.mapper;
 
 import com.attrecto.academy.java.courseapp.model.Course;
 import com.attrecto.academy.java.courseapp.model.dto.CourseDto;
-import com.attrecto.academy.java.courseapp.model.dto.CreateCourseDto;
-import org.mapstruct.Mapper;
-import org.springframework.stereotype.Component;
+import com.attrecto.academy.java.courseapp.model.dto.MinimalCourseDto;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
-@Component
-@Mapper(uses = UserMapper.class)
-public interface CourseMapper {
-    CourseDto courseToCourseDto(Course course);
+public class CourseMapper {
 
-    List<CourseDto> coursesToCourseDtoList(List<Course> courses);
+	public static MinimalCourseDto mapToMinimal(final Course course) {
+		MinimalCourseDto minimalCourseDto = new MinimalCourseDto();
+		minimalCourseDto.setId(course.getId());
+		minimalCourseDto.setDescription(course.getDescription());
+		minimalCourseDto.setTitle(course.getTitle());
+		minimalCourseDto.setUrl(course.getUrl());
+		
+		return minimalCourseDto;
+	}
 
-    Course createCourseDtoToCourseModel(CreateCourseDto createCourseDto);
+	public static CourseDto map(final Course course) {
+		CourseDto courseDto = new CourseDto();
+		courseDto.setId(course.getId());
+		courseDto.setDescription(course.getDescription());
+		courseDto.setTitle(course.getTitle());
+		courseDto.setUrl(course.getUrl());
+		courseDto.setAuthorId(course.getAuthor().getId());
+		courseDto.setStudents(course.getStudents().stream().map(UserMapper::map).collect(Collectors.toSet()));
+		
+		return courseDto;
+	}
+	
+	public static Course map(final MinimalCourseDto courseDto) {
+		return null;
+	}
+
+	public static Course map(final CourseDto courseDto) {
+		return null;
+	}
+	
 }

@@ -1,5 +1,6 @@
 package com.attrecto.academy.java.courseapp.service.util;
 
+import com.attrecto.academy.java.courseapp.mapper.CourseMapper;
 import com.attrecto.academy.java.courseapp.model.Course;
 import com.attrecto.academy.java.courseapp.model.User;
 import com.attrecto.academy.java.courseapp.model.dto.MinimalCourseDto;
@@ -16,34 +17,29 @@ import java.util.stream.Collectors;
 public class ServiceUtil {
 	private CourseRepository courseRepository;
 	private UserRepository userRepository;
-
+	
 	public ServiceUtil(final CourseRepository courseRepository, final UserRepository userRepository) {
 		this.courseRepository = courseRepository;
 		this.userRepository = userRepository;
 	}
-
+	
 	public Course findCourseById(int id) {
 		Optional<Course> course = courseRepository.findById(id);
-		if (course.isEmpty()) {
+		if(course.isEmpty()) {
 			throw new NotFoundException(String.format("Course cannot be found with id: %s", id));
 		}
 		return course.get();
 	}
 
 	public User findUserById(Integer id) {
-		return userRepository.findById(id)
-				.orElseThrow(() -> new NotFoundException(String.format("User cannot be found with id: %s", id)));
+		Optional<User> user = userRepository.findById(id);
+		if(user.isEmpty()) {
+			throw new NotFoundException(String.format("User cannot be found with id: %s", id));
+		}
+		return user.get();
 	}
 
 	public List<MinimalCourseDto> listUserCourses(User user) {
-		return user.getCourses().stream().map(course -> {
-			MinimalCourseDto minimalCourseDto = new MinimalCourseDto();
-			minimalCourseDto.setId(course.getId());
-			minimalCourseDto.setTitle(course.getTitle());
-			minimalCourseDto.setDescription(course.getDescription());
-			minimalCourseDto.setUrl(course.getUrl());
-
-			return minimalCourseDto;
-		}).collect(Collectors.toList());
+		return user.getCourses().stream().map(CourseMapper::mapToMinimal).collect(Collectors.toList());
 	}
 }
