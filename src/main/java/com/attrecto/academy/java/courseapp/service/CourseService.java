@@ -1,5 +1,6 @@
 package com.attrecto.academy.java.courseapp.service;
 
+import com.attrecto.academy.java.courseapp.mapper.CourseMapper;
 import com.attrecto.academy.java.courseapp.model.Course;
 import com.attrecto.academy.java.courseapp.model.dto.CourseDto;
 import com.attrecto.academy.java.courseapp.model.dto.CreateCourseDto;
@@ -7,6 +8,7 @@ import com.attrecto.academy.java.courseapp.model.dto.MinimalUserDto;
 import com.attrecto.academy.java.courseapp.persistence.CourseRepository;
 import com.attrecto.academy.java.courseapp.service.util.ServiceUtil;
 import org.springframework.stereotype.Service;
+import org.webjars.NotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,38 +19,22 @@ public class CourseService {
 	private CourseRepository courseRepository;
 	private ServiceUtil serviceUtil;
 
-	public CourseService(CourseRepository courseRepository, ServiceUtil serviceUtil) {
+	private CourseMapper courseMapper;
+
+	public CourseService(CourseRepository courseRepository, ServiceUtil serviceUtil, CourseMapper courseMapper) {
 		this.courseRepository = courseRepository;
 		this.serviceUtil = serviceUtil;
+		this.courseMapper = courseMapper;
 	}
 
 	public List<CourseDto> listAllCourses() {
-		List<Course> courses = courseRepository.findAll();
-		return courses.stream().map(course -> {
-			CourseDto courseDto = new CourseDto();
-			courseDto.setStudents(course.getStudents().stream().map(student -> {
-				MinimalUserDto minimalUserDto = new MinimalUserDto();
-				minimalUserDto.setId(student.getId());
-				minimalUserDto.setName(student.getName());
-				minimalUserDto.setEmail(student.getEmail());
-				return minimalUserDto;
-			}).collect(Collectors.toList()));
-
-			return courseDto;
-		}).collect(Collectors.toList());
+		return courseMapper.coursesToCourseDtoList(courseRepository.findAll());
 	}
 
 	public CourseDto getCourseById(int id) {
-		Course course = serviceUtil.findCourseById(id);
-		CourseDto courseDto = new CourseDto();
-		courseDto.setStudents(course.getStudents().stream().map(user -> {
-			MinimalUserDto minimalUserDto = new MinimalUserDto();
-			minimalUserDto.setId(user.getId());
-			minimalUserDto.setName(user.getName());
-			minimalUserDto.setEmail(user.getEmail());
-			return minimalUserDto;
-		}).collect(Collectors.toList()));
-		return courseDto;
+		Course course = courseRepository.findById(id)
+				.orElseThrow(() -> new NotFoundException(String.format("A kurzus nem található a megadott id-val %s", id)));
+		return courseMapper.courseToCourseDto(course);
 	}
 
 	public CourseDto createCourse(CreateCourseDto createCourseDto) {
@@ -79,29 +65,13 @@ public class CourseService {
 		return courseDto;
 	}
 
+	//TODO: mapping issues
 	public CourseDto updateCourse(final int id, CreateCourseDto updateCourseDto) {
-		Course course = serviceUtil.findCourseById(id);
-		course.setDescription(updateCourseDto.getDescription());
-		course.setTitle(updateCourseDto.getTitle());
-		course.setUrl(updateCourseDto.getUrl());
-
-		course = courseRepository.save(course);
-		
-		CourseDto courseDto = new CourseDto();
-		courseDto.setId(course.getId());
-		courseDto.setTitle(course.getTitle());
-		courseDto.setDescription(course.getDescription());
-		courseDto.setUrl(course.getUrl());
-		courseDto.setAuthorId(course.getAuthorId());
-		courseDto.setStudents(course.getStudents().stream().map(student -> {
-			MinimalUserDto minimalUserDto = new MinimalUserDto();
-			minimalUserDto.setId(student.getId());
-			minimalUserDto.setName(student.getName());
-			minimalUserDto.setEmail(student.getEmail());
-			return minimalUserDto;
-		}).collect(Collectors.toList()));
-		
-		return courseDto;
+		Course course = courseRepository.findById(id)
+				.orElseThrow(() -> new NotFoundException(String.format("A kurzus nem található a megadott id-val %s", id)));
+		course = courseMapper.createCourseDtoToCourseModel(updateCourseDto);
+		courseRepository.save(course);
+		return courseMapper.courseToCourseDto(course);
 	}
 
 	public void deleteCourse(int id) {

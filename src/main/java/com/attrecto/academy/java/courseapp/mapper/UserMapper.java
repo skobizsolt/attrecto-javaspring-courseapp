@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@Mapper
+@Mapper(uses = CourseMapper.class)
 public interface UserMapper {
     UserDto userToUserDto(User user);
 

@@ -88,7 +88,7 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public List<UserDto> filterUser(final Integer id, final String filter) {
+    public List<UserDto> filterUser(final String filter) {
         List<User> users = userRepository.findAllByNameContainingIgnoreCaseOrderByNameAscId(filter)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("User cannot be found with the given name: %s", filter)));
